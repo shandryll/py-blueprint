@@ -22,11 +22,11 @@ dependencies = [
 
 
 # =================================================================================================
-# Ruff Config
+# Ruff Config & Format
 # =================================================================================================
 [tool.ruff]
-line-length = 100
-target-version = "py311"
+line-length = 120
+target-version = "py39"
 indent-width = 4
 fix = true
 show-fixes = true
@@ -35,8 +35,22 @@ exclude = [
     ".venv",
     "env",
     ".env",
-    "__pycache__"
+    "__pycache__",
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    "build",
+    "dist",
+    "*.egg-info"
 ]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-line-length = "dynamic"
+skip-magic-trailing-comma = false
+line-ending = "auto"
 
 # =================================================================================================
 # Ruff Config - Linter
@@ -52,7 +66,7 @@ select = [
     "E",    # pycodestyle Error
     "F",    # pyflakes
     "I",    # isort
-    "PLC",  # Pylint Convetion
+    "PLC",  # Pylint Convention
     "PLE",  # Pylint Error
     "PLR",  # Pylint Refactor
     "PLW",  # Pylint Warning
@@ -60,13 +74,17 @@ select = [
     "UP",   # pyupgrade
     "W",    # pycodestyle Warning
 ]
+
 ignore = [
     "D100",     # undocumented-public-module
     "D101",     # undocumented-public-class
     "D104",     # undocumented-public-package
+    "D106",     # undocumented-public-nested-class
     "D107",     # undocumented-public-init
     "D203",     # one-blank-line-before-class
+    "D204",     # incorrect-blank-line-after-class
     "D213",     # multi-line-summary-second-line
+    "D413",     # missing-blank-line-after-last-section
     "PLR2004"   # magic-value-comparison
 ]
 
