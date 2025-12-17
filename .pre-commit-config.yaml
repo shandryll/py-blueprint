@@ -1,0 +1,29 @@
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files # Impede arquivos muito grandes de serem commitados (evita travar o repositório)
+      - id: name-tests-test # Verifica se arquivos de teste têm nomes corretos (*_test.py)
+      - id: pretty-format-json # Formata arquivos JSON para ficarem bonitos e organizados
+      - id: trailing-whitespace # Remove espaços em branco no final das linhas
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.10
+    hooks:
+      # Executa o linter (verifica erros no código Python)
+      - id: ruff
+        args: [--fix]
+      # Executa o formatador (organiza o código automaticamente)
+      - id: ruff-format
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.3.0
+    hooks:
+      # Valida mensagens de commit seguindo o padrão Conventional Commits
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: []
