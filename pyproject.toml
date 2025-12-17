@@ -54,7 +54,7 @@ where = ["src"]
 package-dir = { "" = "src" }
 
 # =================================================================================================
-# Ruff Config
+# Ruff Config & Format
 # =================================================================================================
 [tool.ruff]
 line-length = 120 
@@ -93,6 +93,7 @@ select = [
     "UP",   # pyupgrade
     "W",    # pycodestyle Warning
 ]
+
 ignore = [
     "D100",    # undocumented-public-module
     "D101",    # undocumented-public-class
