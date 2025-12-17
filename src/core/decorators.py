@@ -21,6 +21,7 @@ def handle_application_service_error(service_name: str) -> Callable[[Callable[..
         - Não captura ApplicationServiceError (evita duplo encapsulamento)
         - Não captura KeyboardInterrupt e SystemExit
     """
+
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
         def wrapper(*args: object, **kwargs: object) -> T:
