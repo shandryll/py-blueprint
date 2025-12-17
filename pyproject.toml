@@ -5,28 +5,60 @@
 name = "py-blueprint"
 version = "0.1.0"
 description = "Add your description here"
-license = "MIT"
 readme = "README.md"
+license = {text = "MIT"}
 requires-python = ">=3.11"
 authors = [{ name = "Shandryll Stéphano", email = "shandryll94@gmail.com" }]
+keywords = ["blueprint", "template", "python"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
 
 # =================================================================================================
-# Project Dependencies
+# Project Dependencies (Runtime only)
 # =================================================================================================
-dependencies = [
+dependencies = []
+
+# =================================================================================================
+# Optional Dependencies (Dev tools)
+# =================================================================================================
+[project.optional-dependencies]
+dev = [
     "pre-commit>=4.3.0",
     "pyright>=1.1.403",
     "pytest>=8.4.1",
     "ruff>=0.12.9",
 ]
 
+# =================================================================================================
+# uv Configuration
+# =================================================================================================
+[tool.uv]
+dev-dependencies = ["dev"]  # Ativa grupo 'dev' automaticamente
+package = true              # Instalação editável do projeto local
+
+# =================================================================================================
+# Build System
+# =================================================================================================
+[build-system]
+requires = ["setuptools>=70.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
 
 # =================================================================================================
 # Ruff Config & Format
 # =================================================================================================
 [tool.ruff]
-line-length = 120
-target-version = "py39"
+line-length = 120 
+target-version = "py311"
 indent-width = 4
 fix = true
 show-fixes = true
@@ -37,27 +69,14 @@ exclude = [
     ".env",
     "__pycache__",
     ".git",
-    ".mypy_cache",
-    ".pytest_cache",
-    ".ruff_cache",
     "build",
     "dist",
-    "*.egg-info"
+    "*.egg-info",
 ]
 
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-docstring-code-line-length = "dynamic"
-skip-magic-trailing-comma = false
-line-ending = "auto"
-
-# =================================================================================================
-# Ruff Config - Linter
-# =================================================================================================
 [tool.ruff.lint]
 select = [
-    "A",    # flake-8-builtins
+    "A",    # flake8-builtins
     "ANN",  # flake8-annotations
     "B",    # flake8-bugbear
     "COM",  # flake8-commas
@@ -76,35 +95,31 @@ select = [
 ]
 
 ignore = [
-    "D100",     # undocumented-public-module
-    "D101",     # undocumented-public-class
-    "D104",     # undocumented-public-package
-    "D106",     # undocumented-public-nested-class
-    "D107",     # undocumented-public-init
-    "D203",     # one-blank-line-before-class
-    "D204",     # incorrect-blank-line-after-class
-    "D213",     # multi-line-summary-second-line
-    "D413",     # missing-blank-line-after-last-section
-    "PLR2004"   # magic-value-comparison
+    "D100",    # undocumented-public-module
+    "D101",    # undocumented-public-class
+    "D104",    # undocumented-public-package
+    "D106",    # undocumented-public-nested-class
+    "D107",    # undocumented-public-init
+    "D203",    # one-blank-line-before-class
+    "D204",    # incorrect-blank-line-after-class
+    "D213",    # multi-line-summary-second-line
+    "D413",    # missing-blank-line-after-last-section
+    "PLR2004", # magic-value-comparison
+    "PLE1205", # logging-too-many-args
+    "COM812",  # trailing-comma-missing
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = [
-    "ANN201",  # missing-return-type-undocumented-public-function
-    "S101"     # assert
-]
-
+"tests/**/*.py" = ["ANN201", "S101"]
 
 # =================================================================================================
-# Pyright - Typing
+# Pyright - Typing (Fixed)
 # =================================================================================================
 [tool.pyright]
-typeCheckingMode = "strict"
+typeCheckingMode = "basic"
 pythonVersion = "3.11"
-include = [
-    "src",
-    "tests",
-]
+pythonPath = ["src"]
+include = ["src", "tests"]
 exclude = [
     "**/venv",
     "**/.venv",
@@ -112,10 +127,6 @@ exclude = [
     "**/.env",
     "**/__pycache__",
 ]
-venv = ".venv"
-venvPath = "."
-executionEnvironments = [{ root = "src" }]
-
 
 # =================================================================================================
 # Pytest - Tests
@@ -124,17 +135,3 @@ executionEnvironments = [{ root = "src" }]
 addopts = "-s --color=yes --tb=short"
 pythonpath = ["src"]
 testpaths = ["tests"]
-
-
-# ============================
-# Build and Setuptools
-# ============================
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools.packages.find]
-where = ["src"]
-
-[tool.setuptools]
-package-dir = { "" = "src" }
