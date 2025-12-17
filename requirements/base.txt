@@ -1,0 +1,9 @@
+# Runtime Dependencies
+# Gerado a partir de pyproject.toml - dependencies
+# Para atualizar: pip-compile requirements/base.in ou manter sincronizado manualmente
+
+fastapi>=0.115.0
+pydantic-settings>=2.6.1
+python-dotenv>=1.2.1
+structlog>=24.4.0
+uvicorn>=0.32.0
