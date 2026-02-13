@@ -133,6 +133,79 @@ Se você tiver problemas com TLS ao usar `uv` ou preferir o método tradicional,
 - **Verificar tudo**: `make check` (lint + test)
 - **Verificar segurança**: `make security`
 - **Limpar caches**: `make clean`
+- **Instalar hooks de pre-commit**: `make pre-commit-install` (opcional, roda checagens antes de commits)
+
+## Configuração
+
+O projeto usa `pydantic-settings` para gerenciar configurações. Crie um arquivo `.env` na raiz do projeto baseado nas variáveis abaixo:
+
+```env
+# Aplicação
+APP_NAME=Py-Blueprint
+APP_VERSION=0.1.0
+DEBUG=false
+
+# Servidor
+HOST=0.0.0.0
+PORT=8000
+
+# CORS
+CORS_ORIGINS=["http://localhost:3000"]
+LOG_LEVEL=INFO
+```
+
+## Docker
+
+O projeto inclui suporte para Docker:
+
+```bash
+# Build da imagem
+docker build -t py-blueprint .
+
+# Executar com Docker Compose
+docker-compose up -d
+
+# Ver logs
+docker-compose logs -f
+```
+
+## Funcionalidades
+
+- ✅ Estrutura MVC completa
+- ✅ Configuração centralizada com pydantic-settings
+- ✅ Tratamento de erros global (exception handlers)
+- ✅ Middleware de logging
+- ✅ CORS configurável
+- ✅ Versionamento dinâmico do pyproject.toml
+- ✅ Docker e Docker Compose
+- ✅ CI/CD com GitHub Actions
+- ✅ Testes com pytest e cobertura
+- ✅ Linting e formatação com Ruff
+- ✅ Segurança com Bandit e Safety
+
+## CI/CD Pipeline
+
+Este template inclui uma esteira de Integração Contínua (CI) e Implantação Contínua (CD) automatizada usando GitHub Actions. Ela roda automaticamente em pushes e pull requests na branch `main`, garantindo qualidade e segurança do código. Aqui vai uma explicação simples do que cada parte faz:
+
+### Workflows Automatizados
+
+- **Checks (checks.yml)**: Executa verificações rápidas em cada mudança de código.
+  - **Job Linting**: Verifica estilo, formatação e dependências atualizadas (usando Ruff e uv).
+  - **Job Testes**: Roda os testes unitários, mede a cobertura e envia relatório para Codecov.
+- **Security (security.yml)**: Focado em segurança, roda em pushes/PRs e semanalmente (segunda-feira).
+  - **Job Segurança**: Analisa código e pacotes para vulnerabilidades e versões desatualizadas (usando Bandit, Safety e pip).
+
+Para ver os resultados, acesse a aba "Actions" no GitHub após um push ou PR.
+
+## Estrutura de Código
+
+### Exemplo de Repository Interface
+
+Veja `src/repositories/interfaces/base_repository.py` para a interface base que todos os repositórios devem implementar.
+
+## Contribuindo
+
+Veja [CONTRIBUTING.md](CONTRIBUTING.md) para diretrizes de contribuição.
 
 ### Comandos com PIP/Venv Tradicional (Alternativa)
 
