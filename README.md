@@ -13,36 +13,36 @@ Template Python em **MVC** (Model-View-Controller) com FastAPI: configuração d
 ```
 py-blueprint/
 ├── src/
-│   ├── core/                    # Núcleo da aplicação
-│   │   ├── settings/             # Configurações (pydantic-settings + .env)
-│   │   └── exceptions/           # Erros da aplicação e handlers HTTP
+│   ├── core/                           # Núcleo da aplicação
+│   │   ├── settings/                   # Configurações (pydantic-settings + .env)
+│   │   └── exceptions/                 # Erros da aplicação e handlers HTTP
 │   │       ├── application_errors.py   # ApplicationServiceError e códigos HTTP
 │   │       ├── error_decorators.py     # Decorators para tratar erros em services
 │   │       └── fastapi_handlers.py     # Handlers FastAPI (resposta JSON padronizada)
-│   ├── controllers/              # MVC: coordenam rotas e serviços
-│   ├── factories/                # Criação de repositório, service e controller (injeção de dependência)
-│   ├── models/                   # MVC: modelos Pydantic (entrada/saída)
-│   ├── repositories/             # Acesso a dados
-│   │   ├── interfaces/           # Contratos (ex.: IProductRepository)
-│   │   └── in_memory/            # Implementação em memória (ex.: produtos)
-│   ├── routes/                   # Endpoints por recurso
-│   │   ├── health/               # GET /health/
-│   │   └── products/             # CRUD em /api/products/ (get, post, put, patch, delete)
-│   ├── services/                 # Lógica de negócio
-│   ├── utils/                    # Logger (structlog) e outros utilitários
-│   ├── views/                    # MVC: formatação de respostas (quando necessário)
-│   └── main.py                   # App FastAPI, CORS, exception handlers, rotas
+│   ├── controllers/                    # MVC: coordenam rotas e serviços
+│   ├── factories/                      # Criação de repositório, service e controller (injeção de dependência)
+│   ├── models/                         # MVC: modelos Pydantic (entrada/saída)
+│   ├── repositories/                   # Acesso a dados
+│   │   ├── interfaces/                 # Contratos (ex.: IProductRepository)
+│   │   └── in_memory/                  # Implementação em memória (ex.: produtos)
+│   ├── routes/                         # Endpoints por recurso
+│   │   ├── health/                     # GET /health/
+│   │   └── products/                   # CRUD em /api/products/ (get, post, put, patch, delete)
+│   ├── services/                       # Lógica de negócio
+│   ├── utils/                          # Logger (structlog) e outros utilitários
+│   ├── views/                          # MVC: formatação de respostas (quando necessário)
+│   └── main.py                         # App FastAPI, CORS, exception handlers, rotas
 ├── tests/
-│   ├── conftest.py               # Fixtures compartilhadas (client, product_service, etc.)
-│   ├── integration/              # Testes contra a API (TestClient)
-│   └── unit/                     # Testes por camada (espelha src/)
+│   ├── conftest.py                     # Fixtures compartilhadas (client, product_service, etc.)
+│   ├── integration/                    # Testes contra a API (TestClient)
+│   └── unit/                           # Testes por camada (espelha src/)
 │       ├── controllers/
 │       ├── core/exceptions/
 │       ├── models/
 │       ├── repositories/in_memory/
 │       └── services/
-├── pyproject.toml                # Dependências, pytest, ruff, pyright
-└── Makefile                      # Comandos: dev, lint, format, test, sync
+├── pyproject.toml                      # Dependências, pytest, ruff, pyright
+└── Makefile                            # Comandos: dev, lint, format, test, sync
 ```
 
 **Fluxo de uma requisição:** `Route` → `Controller` → `Service` → `Repository` → `Model`. Erros são tratados pelos **exception handlers** e devolvidos em JSON.
@@ -78,30 +78,30 @@ python -m venv .venv
 pip install -e ".[dev]"
 ```
 
-*(Opcional)* Hooks de pre-commit: `uv run pre-commit install`
+_(Opcional)_ Hooks de pre-commit: `uv run pre-commit install`
 
-**Arquivos de requirements (gerados)** — Gerados a partir do `uv.lock`. Não edite manualmente. Para gerar/atualizar: `make requirements`.
+**Arquivos de requirements (gerados)** — Gerados a partir do `pyproject.toml` (somente dependências diretas, fáceis de ler). Não edite manualmente. Para gerar/atualizar: `make requirements`.
 
-| Arquivo | Uso | Conteúdo |
-|---------|-----|----------|
-| `requirements.txt` | Produção / deploy | Apenas dependências de runtime |
+| Arquivo                | Uso                                      | Conteúdo                                   |
+| ---------------------- | ---------------------------------------- | ------------------------------------------ |
+| `requirements.txt`     | Produção / deploy                        | Apenas dependências de runtime             |
 | `requirements-dev.txt` | Desenvolvimento sem uv (pip, IDEs, etc.) | Runtime + dev (pytest, ruff, bandit, etc.) |
 
-Comando equivalente: `uv export --no-dev --no-emit-project -o requirements.txt` e `uv export --extra dev --no-emit-project -o requirements-dev.txt`.
+Gerados pelo script `scripts/export_requirements.py` (lê apenas o que está declarado no `pyproject.toml`).
 
 ---
 
 ## Desenvolvimento
 
-| Ação              | Comando                          |
-|-------------------|-----------------------------------|
-| Subir a API       | `make dev` ou `uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload` |
-| Lint + correção   | `make lint` ou `uv run ruff check . --fix` |
-| Formatar          | `make format` ou `uv run ruff format .` |
-| Testes            | `make test` ou `uv run pytest -v` |
-| Testes + cobertura| `uv run pytest --cov=src --cov-report=term -v` |
-| Sincronizar deps  | `make sync` ou `uv sync --dev` |
-| Gerar requirements (prod + dev) | `make requirements` |
+| Ação                            | Make                 | UV                                                    | Pip / Python (venv ativo) |
+| ------------------------------- | -------------------- | ----------------------------------------------------- | ------------------------- |
+| Gerar requirements (prod + dev) | `make requirements`  | —                                                     | `python scripts/export_requirements.py` |
+| Sincronizar deps                | `make sync`          | `uv sync --dev`                                       | `pip install -e ".[dev]"` ou `pip install -r requirements-dev.txt` |
+| Subir a API                     | `make dev`           | `uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload` | `uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload` |
+| Lint + correção                 | `make lint`          | `uv run ruff check . --fix`                            | `ruff check . --fix`      |
+| Formatar                        | `make format`        | `uv run ruff format .`                                 | `ruff format .`           |
+| Testes                          | `make test`          | `uv run pytest -v`                                     | `pytest -v`                |
+| Testes + cobertura              | —                    | `uv run pytest --cov=src --cov-report=term -v`         | `pytest --cov=src --cov-report=term -v` |
 
 A API sobe em **http://0.0.0.0:8000**. Documentação interativa: **http://localhost:8000/docs**.
 
@@ -152,9 +152,9 @@ docker compose up -d
 ## Estrutura de código (resumo)
 
 - **`core/settings`**: `get_settings()` retorna configurações (singleton). Use em toda a app.
-- **`core/exceptions`**:  
-  - `ApplicationServiceError`: erro de negócio com `message`, `error_code`, `status_code`.  
-  - `@handle_service_errors_async` / `@handle_service_errors_sync`: aplicados nos services para logar e converter exceções.  
+- **`core/exceptions`**:
+  - `ApplicationServiceError`: erro de negócio com `message`, `error_code`, `status_code`.
+  - `@handle_service_errors_async` / `@handle_service_errors_sync`: aplicados nos services para logar e converter exceções.
   - Handlers em `fastapi_handlers` transformam esses erros em resposta JSON (timestamp, path, etc.).
 - **`factories`**: `make_product_repository()`, `make_product_service()`, `make_product_controller()` — usados nas rotas para injetar dependências.
 - **`models`**: Pydantic (ex.: `ProductCreate`, `ProductUpdate`, `ProductResponse`).

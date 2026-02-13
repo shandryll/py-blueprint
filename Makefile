@@ -17,15 +17,15 @@ help:
 	@echo ""
 	@echo "PY-BLUEPRINT - Available commands:"
 	@echo ""
-	@echo "  make venv     # Create virtual environment"
-	@echo "  make sync     # Install/update dependencies"
-	@echo "  make dev      # Start FastAPI server (http://0.0.0.0:8000)"
-	@echo "  make lint     # Lint + auto-fix (using ruff)"
-	@echo "  make format   # Format code (using ruff)"
-	@echo "  make test     # Run tests (using pytest)"
-	@echo "  make clean       # Clean caches + virtual environments"
-	@echo "  make requirements # Generate requirements.txt + requirements-dev.txt (from uv.lock)"
-	@echo "  make help        # Show this help"
+	@echo "  make venv     			# Create virtual environment"
+	@echo "  make sync     			# Install/update dependencies"
+	@echo "  make dev      			# Start FastAPI server (http://0.0.0.0:8000)"
+	@echo "  make lint     			# Lint + auto-fix (using ruff)"
+	@echo "  make format   			# Format code (using ruff)"
+	@echo "  make test     			# Run tests (using pytest)"
+	@echo "  make clean       		# Clean caches + virtual environments"
+	@echo "  make requirements 		# Generate requirements.txt + requirements-dev.txt (from pyproject.toml)"
+	@echo "  make help        		# Show this help"
 	@echo ""
 
 # =================================================================================================
@@ -61,12 +61,10 @@ sync:
 	uv sync --dev
 	@echo "Dependencies synced!"
 
-# Generate requirements.txt (production) and requirements-dev.txt (dev) from uv.lock
+# Generate requirements.txt (production) and requirements-dev.txt (dev) from pyproject.toml (direct deps only)
 requirements:
-	uv export --no-dev --no-emit-project -o requirements.txt
-	uv export --extra dev --no-emit-project -o requirements-dev.txt
-	@echo "requirements.txt (produção) e requirements-dev.txt (desenvolvimento) gerados."
-	@echo "Execute 'make requirements' após alterar dependências (uv lock/sync)."
+	python scripts/export_requirements.py
+	@echo "Execute 'make requirements' após alterar dependências no pyproject.toml."
 
 # =================================================================================================
 # VIRTUAL ENVIRONMENT
