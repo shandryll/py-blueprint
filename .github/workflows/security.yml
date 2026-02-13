@@ -8,6 +8,10 @@ on:
   schedule:
     - cron: "0 0 1,16 * *" # Every 15 days: 1st and 16th of each month at midnight
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   security:
     runs-on: ubuntu-latest
@@ -50,4 +54,13 @@ jobs:
 
       - name: Check for outdated packages
         id: check-outdated
-        run: uv run pip list --outdated
+        run: uv run pip list --outdated || true
+
+      - name: Job summary
+        if: success()
+        run: |
+          echo "## Security results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Bandit: passed" >> $GITHUB_STEP_SUMMARY
+          echo "- Safety: passed" >> $GITHUB_STEP_SUMMARY
+          echo "- Outdated packages: see log above (job does not fail on outdated)" >> $GITHUB_STEP_SUMMARY

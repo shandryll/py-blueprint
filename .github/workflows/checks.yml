@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -48,6 +52,15 @@ jobs:
         id: check-outdated-dependencies
         run: uv lock --check
 
+      - name: Job summary
+        if: success()
+        run: |
+          echo "## Lint results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Ruff check: passed" >> $GITHUB_STEP_SUMMARY
+          echo "- Ruff format: passed" >> $GITHUB_STEP_SUMMARY
+          echo "- Lock file: up to date" >> $GITHUB_STEP_SUMMARY
+
   test:
     runs-on: ubuntu-latest
 
@@ -86,3 +99,13 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
+
+      - name: Job summary
+        if: success()
+        run: |
+          echo "## Test results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          COV=$(python -c "import xml.etree.ElementTree as E; t=E.parse('coverage.xml'); r=t.getroot(); p=float(r.attrib.get('line-rate',0)); print(f'{p*100:.1f}%')")
+          echo "- All tests passed" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage: $COV" >> $GITHUB_STEP_SUMMARY
+          echo "- Report: [Codecov](https://codecov.io)" >> $GITHUB_STEP_SUMMARY

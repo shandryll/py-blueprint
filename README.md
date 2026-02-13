@@ -2,6 +2,7 @@
 
 [![Linter and Formatter Checks](https://github.com/shandryll/py-blueprint/actions/workflows/checks.yml/badge.svg)](https://github.com/shandryll/py-blueprint/actions/workflows/checks.yml)
 [![Security Checks](https://github.com/shandryll/py-blueprint/actions/workflows/security.yml/badge.svg)](https://github.com/shandryll/py-blueprint/actions/workflows/security.yml)
+[![codecov](https://codecov.io/gh/shandryll/py-blueprint/branch/main/graph/badge.svg)](https://codecov.io/gh/shandryll/py-blueprint)
 
 Template Python em **MVC** (Model-View-Controller) com FastAPI: configuração de lint, testes e ambiente pronta para novos projetos.
 
@@ -79,6 +80,15 @@ pip install -e ".[dev]"
 
 *(Opcional)* Hooks de pre-commit: `uv run pre-commit install`
 
+**Arquivos de requirements (gerados)** — Gerados a partir do `uv.lock`. Não edite manualmente. Para gerar/atualizar: `make requirements`.
+
+| Arquivo | Uso | Conteúdo |
+|---------|-----|----------|
+| `requirements.txt` | Produção / deploy | Apenas dependências de runtime |
+| `requirements-dev.txt` | Desenvolvimento sem uv (pip, IDEs, etc.) | Runtime + dev (pytest, ruff, bandit, etc.) |
+
+Comando equivalente: `uv export --no-dev --no-emit-project -o requirements.txt` e `uv export --extra dev --no-emit-project -o requirements-dev.txt`.
+
 ---
 
 ## Desenvolvimento
@@ -91,6 +101,7 @@ pip install -e ".[dev]"
 | Testes            | `make test` ou `uv run pytest -v` |
 | Testes + cobertura| `uv run pytest --cov=src --cov-report=term -v` |
 | Sincronizar deps  | `make sync` ou `uv sync --dev` |
+| Gerar requirements (prod + dev) | `make requirements` |
 
 A API sobe em **http://0.0.0.0:8000**. Documentação interativa: **http://localhost:8000/docs**.
 

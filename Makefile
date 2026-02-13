@@ -8,7 +8,7 @@ VENV_DIR := .venv
 # Detect OS for cross-platform commands
 UNAME_S := $(shell uname -s 2>/dev/null || echo Windows)
 
-.PHONY: help dev lint format test sync clean venv pre-commit
+.PHONY: help dev lint format test sync clean venv pre-commit requirements
 
 # =================================================================================================
 # HELP
@@ -23,8 +23,9 @@ help:
 	@echo "  make lint     # Lint + auto-fix (using ruff)"
 	@echo "  make format   # Format code (using ruff)"
 	@echo "  make test     # Run tests (using pytest)"
-	@echo "  make clean    # Clean caches + virtual environments"
-	@echo "  make help     # Show this help"
+	@echo "  make clean       # Clean caches + virtual environments"
+	@echo "  make requirements # Generate requirements.txt + requirements-dev.txt (from uv.lock)"
+	@echo "  make help        # Show this help"
 	@echo ""
 
 # =================================================================================================
@@ -59,6 +60,13 @@ test:
 sync:
 	uv sync --dev
 	@echo "Dependencies synced!"
+
+# Generate requirements.txt (production) and requirements-dev.txt (dev) from uv.lock
+requirements:
+	uv export --no-dev --no-emit-project -o requirements.txt
+	uv export --extra dev --no-emit-project -o requirements-dev.txt
+	@echo "requirements.txt (produção) e requirements-dev.txt (desenvolvimento) gerados."
+	@echo "Execute 'make requirements' após alterar dependências (uv lock/sync)."
 
 # =================================================================================================
 # VIRTUAL ENVIRONMENT
