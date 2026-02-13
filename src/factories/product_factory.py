@@ -2,7 +2,7 @@ from functools import lru_cache
 
 from src.controllers.product_controller import ProductController
 from src.repositories.in_memory import InMemoryProductRepository
-from src.repositories.product_repository import IProductRepository
+from src.repositories.interfaces.product_repository import IProductRepository
 from src.services.product_service import ProductService
 
 

@@ -30,7 +30,7 @@ class ProductBase(BaseModel):
             ValueError: Se o nome for apenas espaços em branco.
         """
         if not v.strip():
-            raise ValueError("Nome não pode ser apenas espaços em branco")
+            raise ValueError("Name cannot be only whitespace")
         return v.strip()
 
 

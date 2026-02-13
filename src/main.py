@@ -17,7 +17,7 @@ from src.utils.logger import get_logger
 # Carrega configurações
 settings = get_settings()
 
-# Configura logging da aplicação (configuração automática na primeira chamada)
+# Application logging (auto-configured on first call)
 logger = get_logger(__name__)
 
 # Cria a aplicação FastAPI

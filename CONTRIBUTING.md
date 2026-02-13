@@ -1,61 +1,83 @@
 # Guia de Contribuição
 
-Obrigado por considerar contribuir para o Py-Blueprint! Este documento fornece diretrizes para contribuir com o projeto.
+Obrigado por considerar contribuir para o Py-Blueprint. Este guia resume como configurar o ambiente, rodar checks e enviar contribuições.
 
-## Como Contribuir
+---
 
-### 1. Configuração do Ambiente
+## 1. Configurar o ambiente
 
-1. Faça um fork do repositório
-2. Clone seu fork: `git clone <seu-fork-url>`
-3. Crie um ambiente virtual: `make venv`
-4. Instale as dependências: `make install-dev`
-5. Instale os hooks de pre-commit: `make pre-commit-install`
+1. Faça um **fork** do repositório e clone o seu fork.
+2. Crie e ative o ambiente virtual:
+   ```bash
+   uv venv
+   # Ativar: source .venv/bin/activate (Linux/Mac) ou .venv\Scripts\Activate.ps1 (Windows)
+   ```
+   *(Alternativa com pip: `python -m venv .venv` e ative o `.venv`.)*
+3. Instale as dependências:
+   ```bash
+   uv sync --dev
+   ```
+   *(Com pip: `pip install -e ".[dev]"`.)*
+4. *(Opcional)* Hooks de pre-commit: `uv run pre-commit install`
 
-### 2. Processo de Desenvolvimento
+---
 
-1. Crie uma branch para sua feature: `git checkout -b feature/minha-feature`
-2. Faça suas alterações
-3. Execute os testes: `make test`
-4. Verifique o linting: `make lint`
-5. Formate o código: `make format`
-6. Commit suas alterações: `git commit -m "feat: adiciona nova feature"`
-7. Push para sua branch: `git push origin feature/minha-feature`
-8. Abra um Pull Request
+## 2. Fluxo de desenvolvimento
 
-### 3. Padrões de Código
+1. Crie uma branch: `git checkout -b feature/minha-feature` (ou `fix/...`, `docs/...`).
+2. Faça suas alterações no código.
+3. Rode os testes:
+   ```bash
+   make test
+   # ou: uv run pytest -v
+   ```
+4. Rode lint e formatação:
+   ```bash
+   make lint
+   make format
+   ```
+   *(Ou: `uv run ruff check . --fix` e `uv run ruff format .`.)*
+5. Faça commit, push e abra um **Pull Request** na branch correspondente.
 
-- Siga o estilo de código definido pelo Ruff
-- Use type hints em todas as funções
-- Escreva docstrings para módulos, classes e funções públicas
-- Mantenha a cobertura de testes acima de 80%
+Antes do PR, garanta que **todos os testes passam** e o código está **lintado e formatado**.
 
-### 4. Commits
+---
 
-Use mensagens de commit descritivas seguindo o padrão Conventional Commits:
+## 3. Padrões de código
 
-- `feat:` Nova funcionalidade
-- `fix:` Correção de bug
-- `docs:` Documentação
-- `style:` Formatação
-- `refactor:` Refatoração
-- `test:` Testes
-- `chore:` Tarefas de manutenção
+- **Estilo**: siga o Ruff (configurado no `pyproject.toml`).
+- **Tipos**: use type hints em funções e métodos públicos.
+- **Documentação**: docstrings em módulos, classes e funções públicas.
+- **Testes**: escreva testes para novas funcionalidades; mantenha a cobertura em nível aceitável (ex.: ≥ 80% quando aplicável).
 
-### 5. Testes
+---
 
-- Escreva testes para novas funcionalidades
-- Mantenha a cobertura de testes
-- Execute `make test` antes de fazer commit
+## 4. Commits
 
-### 6. Pull Requests
+Use **Conventional Commits** para facilitar o histórico e o changelog:
 
-- Descreva claramente o que foi alterado
-- Referencie issues relacionadas, se houver
-- Certifique-se de que todos os testes passam
-- Aguarde a revisão antes de fazer merge
+| Prefixo   | Uso                |
+|-----------|--------------------|
+| `feat:`   | Nova funcionalidade |
+| `fix:`    | Correção de bug     |
+| `docs:`   | Só documentação     |
+| `style:`  | Formatação (sem lógica) |
+| `refactor:` | Refatoração       |
+| `test:`   | Testes              |
+| `chore:`  | Manutenção (deps, CI, etc.) |
 
-## Dúvidas?
+Exemplo: `feat: adiciona filtro por categoria em produtos`.
 
-Se tiver dúvidas, abra uma issue no repositório.
+---
 
+## 5. Pull Requests
+
+- Descreva de forma clara o que foi alterado e por quê.
+- Referencie issues relacionadas (ex.: `Closes #42`).
+- Certifique-se de que os testes e o lint passam (localmente e no CI).
+
+---
+
+## Dúvidas
+
+Se tiver dúvidas, abra uma **issue** no repositório.

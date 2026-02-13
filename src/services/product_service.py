@@ -1,7 +1,5 @@
 from uuid import UUID
 
-from src.repositories.product_repository import IProductRepository
-
 from src.core.exceptions import (
     HTTP_404_NOT_FOUND,
     HTTP_409_CONFLICT,
@@ -9,6 +7,7 @@ from src.core.exceptions import (
     handle_service_errors_async,
 )
 from src.models.product import ProductCreate, ProductResponse, ProductUpdate
+from src.repositories.interfaces.product_repository import IProductRepository
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -36,19 +35,19 @@ class ProductService:
         Raises:
             ApplicationServiceError: Se ocorrer algum erro durante a criação.
         """
-        logger.debug("Criando produto", operation="create_product")
+        logger.debug("Creating product", operation="create_product")
 
         existing_product = await self._repository.get_by_name(product_data.name)
         if existing_product:
             raise ApplicationServiceError(
                 service_name=self.SERVICE_NAME,
-                message=f"Produto com nome '{product_data.name}' já existe",
+                message=f"Product with name '{product_data.name}' already exists",
                 status_code=HTTP_409_CONFLICT,
                 error_code="PRODUCT_NAME_ALREADY_EXISTS",
             )
 
         product = await self._repository.create(product_data)
-        logger.info("Produto criado", operation="create_product")
+        logger.info("Product created", operation="create_product")
         return product
 
     @handle_service_errors_async(service_name=SERVICE_NAME, error_code="GET_ERROR")
@@ -64,16 +63,16 @@ class ProductService:
         Raises:
             ApplicationServiceError: Se o produto não for encontrado.
         """
-        logger.debug("Buscando produto", operation="get_product_by_id")
+        logger.debug("Fetching product", operation="get_product_by_id")
         product = await self._repository.get_by_id(product_id)
         if not product:
             raise ApplicationServiceError(
                 service_name=self.SERVICE_NAME,
-                message=f"Produto com ID {product_id} não encontrado",
+                message=f"Product with ID {product_id} not found",
                 status_code=HTTP_404_NOT_FOUND,
                 error_code="PRODUCT_NOT_FOUND",
             )
-        logger.info("Produto encontrado", operation="get_product_by_id")
+        logger.info("Product found", operation="get_product_by_id")
         return product
 
     @handle_service_errors_async(service_name=SERVICE_NAME, error_code="GET_ERROR")
@@ -89,16 +88,16 @@ class ProductService:
         Raises:
             ApplicationServiceError: Se o produto não for encontrado.
         """
-        logger.debug("Buscando produto", operation="get_product_by_name", name=name)
+        logger.debug("Fetching product", operation="get_product_by_name", name=name)
         product = await self._repository.get_by_name(name)
         if not product:
             raise ApplicationServiceError(
                 service_name=self.SERVICE_NAME,
-                message=f"Produto com nome '{name}' não encontrado",
+                message=f"Product with name '{name}' not found",
                 status_code=HTTP_404_NOT_FOUND,
                 error_code="PRODUCT_NOT_FOUND",
             )
-        logger.info("Produto encontrado", operation="get_product_by_name")
+        logger.info("Product found", operation="get_product_by_name")
         return product
 
     @handle_service_errors_async(service_name=SERVICE_NAME, error_code="GET_ALL_ERROR")
@@ -112,9 +111,9 @@ class ProductService:
         Returns:
             list[ProductResponse]: Lista de produtos.
         """
-        logger.debug("Listando produtos", operation="get_all_products")
+        logger.debug("Listing products", operation="get_all_products")
         products = await self._repository.get_all(skip=skip, limit=limit)
-        logger.info("Produtos listados", operation="get_all_products", count=len(products))
+        logger.info("Products listed", operation="get_all_products", count=len(products))
         return products
 
     @handle_service_errors_async(service_name=SERVICE_NAME, error_code="UPDATE_ERROR")
@@ -135,7 +134,7 @@ class ProductService:
         if not existing_product:
             raise ApplicationServiceError(
                 service_name=self.SERVICE_NAME,
-                message=f"Produto com ID {product_id} não encontrado",
+                message=f"Product with ID {product_id} not found",
                 status_code=HTTP_404_NOT_FOUND,
                 error_code="PRODUCT_NOT_FOUND",
             )
@@ -145,7 +144,7 @@ class ProductService:
             if product_with_same_name and product_with_same_name.id != product_id:
                 raise ApplicationServiceError(
                     service_name=self.SERVICE_NAME,
-                    message=f"Produto com nome '{product_data.name}' já existe",
+                    message=f"Product with name '{product_data.name}' already exists",
                     status_code=HTTP_409_CONFLICT,
                     error_code="PRODUCT_NAME_ALREADY_EXISTS",
                 )
@@ -154,11 +153,11 @@ class ProductService:
         if updated_product is None:
             raise ApplicationServiceError(
                 service_name=self.SERVICE_NAME,
-                message=f"Produto com ID {product_id} não encontrado durante atualização",
+                message=f"Product with ID {product_id} not found during update",
                 status_code=HTTP_404_NOT_FOUND,
                 error_code="PRODUCT_NOT_FOUND",
             )
-        logger.info("Produto atualizado", operation="update_product")
+        logger.info("Product updated", operation="update_product")
         return updated_product
 
     @handle_service_errors_async(service_name=SERVICE_NAME, error_code="DELETE_ERROR")
@@ -171,13 +170,13 @@ class ProductService:
         Raises:
             ApplicationServiceError: Se o produto não for encontrado.
         """
-        logger.debug("Deletando produto", operation="delete_product")
+        logger.debug("Deleting product", operation="delete_product")
         deleted = await self._repository.delete(product_id)
         if not deleted:
             raise ApplicationServiceError(
                 service_name=self.SERVICE_NAME,
-                message=f"Produto com ID {product_id} não encontrado",
+                message=f"Product with ID {product_id} not found",
                 status_code=HTTP_404_NOT_FOUND,
                 error_code="PRODUCT_NOT_FOUND",
             )
-        logger.info("Produto deletado", operation="delete_product")
+        logger.info("Product deleted", operation="delete_product")

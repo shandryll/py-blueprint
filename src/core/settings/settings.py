@@ -11,17 +11,18 @@ class Settings(BaseSettings):
 
     # Aplicação
     app_name: str = "Py-Blueprint"
-    app_version: str = "0.1.0"
+    app_version: str = "1.0.0"
     app_description: str = "Template MVC para Python"
+    # Repassado ao FastAPI (tracebacks, etc.). Quando True, o nível de log vira DEBUG (ver logger.py).
     debug: bool = False
 
     # Servidor
-    host: str = "0.0.0.0"
+    host: str = "127.0.0.1"
     port: int = 8000
     reload: bool = False
 
     # CORS
-    cors_origins: list[str] = ["http://localhost:3000", "http://localhost:8080"]
+    cors_origins: list[str] = ["http://localhost:3000", "http://localhost:8000/"]
     cors_allow_credentials: bool = True
     cors_allow_methods: list[str] = ["GET", "POST", "PUT", "DELETE", "PATCH"]
     cors_allow_headers: list[str] = ["Content-Type", "Authorization", "Accept"]

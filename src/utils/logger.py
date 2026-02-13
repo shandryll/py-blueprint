@@ -51,10 +51,10 @@ def _setup() -> None:
         cache_logger_on_first_use=True,
     )
 
-    # Configura logging padrão do Python (structlog usa isso internamente)
+    log_level = logging.DEBUG if settings.debug else getattr(logging, settings.log_level.upper(), logging.INFO)
     logging.basicConfig(
         format="%(message)s",
-        level=getattr(logging, settings.log_level.upper(), logging.INFO),
+        level=log_level,
     )
 
     # Reduz ruído do uvicorn
@@ -90,7 +90,7 @@ class SimpleLogger:
 
     def warning(self, message: str, **kwargs: object) -> None:
         """Log de warning.
-        
+
         Args:
             message: Mensagem do log.
             **kwargs: Dados extras para incluir no log.
@@ -119,19 +119,15 @@ def get_logger(name: str | None = None) -> SimpleLogger:
     Examples:
         logger = get_logger(__name__)
         # Adicionar dados extras diretamente no log
-        logger.info("Produto criado", product_id="123", price=99.90, category="eletrônicos")
-        logger.error("Erro ao processar", user_id="456", operation="create", error_code="E001")
+        logger.info("Product created", product_id="123", price=99.90, category="electronics")
+        logger.error("Error processing", user_id="456", operation="create", error_code="E001")
         logger.debug("Validando dados", count=10, status="processing")
     """
     _setup()
 
     if name is None:
         frame = inspect.currentframe()
-        name = (
-            frame.f_back.f_globals.get("__name__", "unknown")
-            if frame and frame.f_back
-            else "unknown"
-        )
+        name = frame.f_back.f_globals.get("__name__", "unknown") if frame and frame.f_back else "unknown"
 
     logger = structlog.get_logger(name)
     return SimpleLogger(logger)

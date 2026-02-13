@@ -142,7 +142,7 @@ exclude = [
 # Pytest - Tests
 # =================================================================================================
 [tool.pytest.ini_options]
-addopts = "-s --color=yes --tb=short"
+addopts = "-v --color=yes --tb=short"
 pythonpath = ["src"]
 testpaths = ["tests"]
 asyncio_mode = "auto"

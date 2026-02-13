@@ -36,7 +36,7 @@ def _handle_error(
     """
     if isinstance(err, ApplicationServiceError):
         logger.error(
-            "Erro de serviço",
+            "Service error",
             operation="error_handling",
             function=func_name,
             service=service_name,
@@ -48,7 +48,7 @@ def _handle_error(
         raise err
     elif isinstance(err, ValidationError):
         logger.error(
-            "Erro de validação do Pydantic",
+            "Pydantic validation error",
             operation="error_handling",
             function=func_name,
             service=service_name,
@@ -58,13 +58,13 @@ def _handle_error(
         )
         raise ApplicationServiceError(
             service_name=service_name,
-            message=f"Erro de validação: {str(err)}",
+            message=f"Validation error: {str(err)}",
             status_code=HTTP_422_UNPROCESSABLE_ENTITY,
             error_code="VALIDATION_ERROR",
         ) from err
     elif isinstance(err, ValueError):
         logger.error(
-            "Erro de validação",
+            "Validation error",
             operation="error_handling",
             function=func_name,
             service=service_name,
@@ -74,13 +74,13 @@ def _handle_error(
         )
         raise ApplicationServiceError(
             service_name=service_name,
-            message=f"Erro de validação em {func_name}: {str(err)}",
+            message=f"Validation error in {func_name}: {str(err)}",
             status_code=HTTP_500_INTERNAL_SERVER_ERROR,
             error_code=error_code,
         ) from err
     else:
         logger.error(
-            "Erro inesperado",
+            "Unexpected error",
             operation="error_handling",
             function=func_name,
             service=service_name,
@@ -90,7 +90,7 @@ def _handle_error(
         )
         raise ApplicationServiceError(
             service_name=service_name,
-            message=f"Erro em {func_name}: {str(err)}",
+            message=f"Error in {func_name}: {str(err)}",
             status_code=HTTP_500_INTERNAL_SERVER_ERROR,
             error_code=error_code,
         ) from err
@@ -128,7 +128,9 @@ def handle_service_errors_async(
                     error_code=error_code,
                     err=err,
                 )
+
         return wrapper
+
     return decorator
 
 
@@ -164,5 +166,7 @@ def handle_service_errors_sync(
                     error_code=error_code,
                     err=err,
                 )
+
         return wrapper
+
     return decorator

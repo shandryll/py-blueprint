@@ -79,7 +79,7 @@ jobs:
 
       - name: Run unit tests with coverage
         id: run-unit-tests
-        run: uv run pytest --cov=src --cov-report=xml --cov-fail-under=75 -s -v
+        run: uv run pytest --cov=src --cov-report=xml --cov-fail-under=80 -v
 
       - name: Upload coverage to Codecov
         id: upload-coverage
