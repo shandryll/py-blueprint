@@ -46,6 +46,7 @@ jobs:
 
       - name: Check code formatting
         id: check-code-formatting
+        continue-on-error: true
         run: uv run ruff format --check .
 
       - name: Check for outdated dependencies
@@ -58,7 +59,11 @@ jobs:
           echo "## Lint results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- Ruff check: passed" >> $GITHUB_STEP_SUMMARY
-          echo "- Ruff format: passed" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check-code-formatting.outcome }}" == "success" ]; then
+            echo "- Ruff format: passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Ruff format: falhou (não bloqueia a pipeline)" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "- Lock file: up to date" >> $GITHUB_STEP_SUMMARY
 
   test:

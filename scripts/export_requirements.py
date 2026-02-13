@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
-"""
-Gera requirements.txt e requirements-dev.txt a partir do pyproject.toml
+"""Gera requirements.txt e requirements-dev.txt a partir do pyproject.toml.
+
 (somente dependências diretas, sem transitivas — fácil de ler e manter).
 """
-from pathlib import Path
 
 import tomllib
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PYPROJECT = ROOT / "pyproject.toml"
 
 
 def main() -> None:
+    """Exporta dependências do pyproject.toml para requirements.txt e requirements-dev.txt."""
     with open(PYPROJECT, "rb") as f:
         data = tomllib.load(f)
 
@@ -20,10 +21,7 @@ def main() -> None:
     optional = project.get("optional-dependencies", {})
     dev_deps: list[str] = optional.get("dev", [])
 
-    header = (
-        "# Gerado a partir de pyproject.toml (dependências diretas).\n"
-        "# Para atualizar: make requirements\n\n"
-    )
+    header = "# Gerado a partir de pyproject.toml (dependências diretas).\n# Para atualizar: make requirements\n\n"
 
     # Produção: só runtime
     req_path = ROOT / "requirements.txt"
