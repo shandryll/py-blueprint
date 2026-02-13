@@ -1,10 +1,12 @@
-name: Linter and Formatter Checks
+name: CI Pipeline
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    - cron: "0 0 1,16 * *" # Every 15 days: 1st and 16th of each month at midnight
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -68,6 +70,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    needs: lint
 
     steps:
       - name: Checkout
@@ -114,4 +117,56 @@ jobs:
           COV=$(python -c "import xml.etree.ElementTree as E; t=E.parse('coverage.xml'); r=t.getroot(); p=float(r.attrib.get('line-rate',0)); print(f'{p*100:.1f}%')")
           echo "- All tests passed" >> $GITHUB_STEP_SUMMARY
           echo "- Coverage: $COV" >> $GITHUB_STEP_SUMMARY
-          echo "- Report: [Codecov](https://codecov.io)" >> $GITHUB_STEP_SUMMARY
+
+  security:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Cache uv
+        id: cache-uv
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ hashFiles('**/pyproject.toml') }}
+
+      - name: Set up uv
+        id: setup-uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        id: setup-python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        id: install-dependencies
+        run: uv sync --dev --extra dev
+
+      - name: Run Bandit security check
+        id: run-bandit
+        run: uv run bandit -r src/
+
+      - name: Check package vulnerabilities
+        id: check-vulnerabilities
+        env:
+          SAFETY_API_KEY: ${{ secrets.SAFETY_API_KEY }}
+        run: uv run safety scan
+
+      - name: Check for outdated packages
+        id: check-outdated
+        run: uv run pip list --outdated || true
+
+      - name: Job summary
+        if: success()
+        run: |
+          echo "## Security results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Bandit: passed" >> $GITHUB_STEP_SUMMARY
+          echo "- Safety: passed" >> $GITHUB_STEP_SUMMARY
+          echo "- Outdated packages: see log above (job does not fail on outdated)" >> $GITHUB_STEP_SUMMARY

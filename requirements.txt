@@ -1,8 +1,0 @@
-# Gerado a partir de pyproject.toml (dependências diretas).
-# Para atualizar: make requirements
-
-fastapi>=0.115.0
-pydantic-settings>=2.6.1
-python-dotenv>=1.2.1
-structlog>=24.4.0
-uvicorn>=0.32.0

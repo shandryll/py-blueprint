@@ -1,7 +1,6 @@
 # PY-BLUEPRINT (MVC)
 
-[![Linter and Formatter Checks](https://github.com/shandryll/py-blueprint/actions/workflows/checks.yml/badge.svg)](https://github.com/shandryll/py-blueprint/actions/workflows/checks.yml)
-[![Security Checks](https://github.com/shandryll/py-blueprint/actions/workflows/security.yml/badge.svg)](https://github.com/shandryll/py-blueprint/actions/workflows/security.yml)
+[![CI Pipeline](https://github.com/shandryll/py-blueprint/actions/workflows/checks.yml/badge.svg)](https://github.com/shandryll/py-blueprint/actions/workflows/checks.yml)
 [![codecov](https://codecov.io/gh/shandryll/py-blueprint/branch/main/graph/badge.svg)](https://codecov.io/gh/shandryll/py-blueprint)
 
 Template Python em **MVC** (Model-View-Controller) com FastAPI: configuração de lint, testes e ambiente pronta para novos projetos.
@@ -166,8 +165,7 @@ docker compose up -d
 
 ## CI/CD
 
-- **checks.yml**: lint (Ruff) e testes com cobertura (Codecov).
-- **security.yml**: Bandit e Safety (pushes/PRs e semanal).
+- **checks.yml** (CI Pipeline): execução em sequência — lint (Ruff) → testes com cobertura (Codecov) → security (Bandit, Safety). Dispara em pushes/PRs para `main` e agendado nos dias 1 e 16 de cada mês.
 
 ---
 
