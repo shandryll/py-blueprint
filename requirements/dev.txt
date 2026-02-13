@@ -1,11 +1,5 @@
-# Development Dependencies
-# Gerado a partir de pyproject.toml - optional-dependencies.dev
-# Para atualizar: pip-compile requirements/dev.in ou manter sincronizado manualmente
-
-# Inclui dependências base
 -r base.txt
 
-# Dev tools
 bandit>=1.7.0
 pre-commit>=4.3.0
 pyright>=1.1.403

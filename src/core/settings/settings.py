@@ -1,4 +1,4 @@
-"""Configurações da aplicação usando pydantic-settings."""
+from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -16,18 +16,19 @@ class Settings(BaseSettings):
     debug: bool = False
 
     # Servidor
-    host: str = "0.0.0.0"  # nosec B104 - Valor padrão para desenvolvimento, pode ser sobrescrito via env
+    host: str = "0.0.0.0"
     port: int = 8000
     reload: bool = False
 
     # CORS
-    cors_origins: list[str] = ["*"]
+    cors_origins: list[str] = ["http://localhost:3000", "http://localhost:8080"]
     cors_allow_credentials: bool = True
-    cors_allow_methods: list[str] = ["*"]
-    cors_allow_headers: list[str] = ["*"]
+    cors_allow_methods: list[str] = ["GET", "POST", "PUT", "DELETE", "PATCH"]
+    cors_allow_headers: list[str] = ["Content-Type", "Authorization", "Accept"]
 
     # Logging
     log_level: str = "INFO"
+    log_format_json: bool = False
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -37,10 +38,13 @@ class Settings(BaseSettings):
     )
 
 
+@lru_cache
 def get_settings() -> Settings:
     """Retorna as configurações da aplicação.
 
+    Usa cache para garantir que apenas uma instância seja criada (singleton pattern).
+
     Returns:
-        Settings: Instância das configurações.
+        Settings: Instância das configurações (cached).
     """
     return Settings()

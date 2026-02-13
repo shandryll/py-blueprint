@@ -1,19 +1,24 @@
-import logging
-
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from src.core.config import get_settings
-from src.routes.health import router as health_router
-
-# Configuração de logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+from src.core.exceptions.application_errors import ApplicationServiceError
+from src.core.exceptions.fastapi_handlers import (
+    application_error_handler,
+    http_exception_handler,
+    validation_exception_handler,
 )
+from src.core.settings import get_settings
+from src.routes.health import router as health_router
+from src.routes.products import router as products_router
+from src.utils.logger import get_logger
 
 # Carrega configurações
 settings = get_settings()
+
+# Configura logging da aplicação (configuração automática na primeira chamada)
+logger = get_logger(__name__)
 
 # Cria a aplicação FastAPI
 app = FastAPI(
@@ -32,5 +37,11 @@ app.add_middleware(
     allow_headers=settings.cors_allow_headers,
 )
 
+# Registra exception handlers
+app.add_exception_handler(ApplicationServiceError, application_error_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+
 # Inclui rotas
 app.include_router(health_router)
+app.include_router(products_router)
