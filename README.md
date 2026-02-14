@@ -3,7 +3,7 @@
 [![CI Pipeline](https://github.com/shandryll/py-blueprint/actions/workflows/checks.yml/badge.svg)](https://github.com/shandryll/py-blueprint/actions/workflows/checks.yml)
 [![codecov](https://codecov.io/gh/shandryll/py-blueprint/branch/main/graph/badge.svg)](https://codecov.io/gh/shandryll/py-blueprint)
 
-Template Python em **MVC** (Model-View-Controller) com FastAPI: configuração de lint, testes e ambiente pronta para novos projetos.
+Template Python em **MVC** (Model-Controller) com FastAPI: configuração de lint, testes e ambiente pronta para novos projetos.
 
 ---
 
@@ -29,7 +29,6 @@ py-blueprint/
 │   │   └── products/                   # CRUD em /api/products/ (get, post, put, patch, delete)
 │   ├── services/                       # Lógica de negócio
 │   ├── utils/                          # Logger (structlog) e outros utilitários
-│   ├── views/                          # MVC: formatação de respostas (quando necessário)
 │   └── main.py                         # App FastAPI, CORS, exception handlers, rotas
 ├── tests/
 │   ├── conftest.py                     # Fixtures compartilhadas (client, product_service, etc.)
@@ -137,7 +136,7 @@ docker compose up -d
 
 ## O que este template oferece
 
-- **MVC** com rotas por recurso e por verbo HTTP (get/post/put/patch/delete).
+- **Model-Controller** com rotas por recurso e por verbo HTTP (get/post/put/patch/delete).
 - **Configuração centralizada** com `pydantic-settings` e `.env`.
 - **Erros padronizados**: `ApplicationServiceError` + decorators em services + handlers FastAPI (resposta JSON).
 - **Logging estruturado** (structlog): texto ou JSON conforme `LOG_FORMAT_JSON`.

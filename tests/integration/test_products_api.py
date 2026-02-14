@@ -67,24 +67,6 @@ def test_get_product_by_id_not_found_returns_404(client: TestClient) -> None:
     assert "not found" in data["message"].lower()
 
 
-def test_get_product_display_returns_view_format(client: TestClient) -> None:
-    """GET /api/products/{id}/display returns 200 and View format (price_formatted, stock_status)."""
-    create_resp = client.post(
-        "/api/products/",
-        json={"name": "Display Product", "description": None, "price": 99.9, "stock": 3},
-    )
-    assert create_resp.status_code == 201
-    product_id = create_resp.json()["id"]
-    response = client.get(f"/api/products/{product_id}/display")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["name"] == "Display Product"
-    assert data["price"] == 99.9
-    assert "price_formatted" in data
-    assert "stock_status" in data
-    assert data["stock_status"] == "estoque_baixo"  # stock 3 < 5
-
-
 def test_get_all_products_returns_list(client: TestClient) -> None:
     """GET /api/products/ returns 200 and list (possibly empty)."""
     response = client.get("/api/products/")
