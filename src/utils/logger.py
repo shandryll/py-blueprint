@@ -1,10 +1,49 @@
 import inspect
 import logging
+from contextvars import ContextVar
 
 import structlog
 from structlog.stdlib import LoggerFactory
 
 from src.core.settings import get_settings
+
+# Context variable para armazenar o correlation ID da requisição atual
+_correlation_id_var: ContextVar[str | None] = ContextVar("correlation_id", default=None)
+
+
+def get_correlation_id() -> str | None:
+    """Obtém o correlation ID da requisição atual.
+
+    Returns:
+        str | None: O correlation ID ou None se não houver requisição ativa.
+    """
+    return _correlation_id_var.get()
+
+
+def set_correlation_id(correlation_id: str) -> None:
+    """Define o correlation ID para a requisição atual.
+
+    Args:
+        correlation_id: O ID único para rastrear a requisição.
+    """
+    _correlation_id_var.set(correlation_id)
+
+
+def _add_correlation_id(logger: structlog.BoundLogger, method_name: str, event_dict: dict) -> dict:
+    """Processor que adiciona correlation_id a todos os logs.
+
+    Args:
+        logger: Logger do structlog.
+        method_name: Nome do método (debug, info, warning, error).
+        event_dict: Dicionário de eventos.
+
+    Returns:
+        dict: Event dict atualizado com correlation_id se disponível.
+    """
+    correlation_id = get_correlation_id()
+    if correlation_id:
+        event_dict["correlation_id"] = correlation_id
+    return event_dict
 
 
 class _LoggingConfig:
@@ -32,6 +71,7 @@ def _setup() -> None:
 
     # Processors para formatação (apenas o essencial)
     processors = [
+        _add_correlation_id,  # Adiciona correlation_id do contexto
         structlog.stdlib.add_log_level,  # Adiciona nível do log
         structlog.processors.TimeStamper(fmt="iso"),  # Timestamp ISO
     ]
@@ -57,7 +97,6 @@ def _setup() -> None:
         level=log_level,
     )
 
-    # Reduz ruído do uvicorn
     logging.getLogger("uvicorn").setLevel(logging.WARNING)
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 

@@ -14,22 +14,24 @@ py-blueprint/
 ├── src/
 │   ├── core/                           # Núcleo da aplicação
 │   │   ├── settings/                   # Configurações (pydantic-settings + .env)
-│   │   └── exceptions/                 # Erros da aplicação e handlers HTTP
-│   │       ├── application_errors.py   # ApplicationServiceError e códigos HTTP
-│   │       ├── error_decorators.py     # Decorators para tratar erros em services
-│   │       └── fastapi_handlers.py     # Handlers FastAPI (resposta JSON padronizada)
+│   │   ├── exceptions/                 # Erros da aplicação e handlers HTTP
+│   │   │   ├── application_errors.py   # ApplicationServiceError e códigos HTTP
+│   │   │   ├── error_decorators.py     # Decorators para tratar erros em services
+│   │   │   └── fastapi_handlers.py     # Handlers FastAPI (resposta JSON padronizada)
+│   │   └── middleware/                 # Middleware da aplicação
+│   │       └── http_logging.py         # Logging estruturado de requisições HTTP (correlation ID)
 │   ├── controllers/                    # MVC: coordenam rotas e serviços
 │   ├── factories/                      # Criação de repositório, service e controller (injeção de dependência)
 │   ├── models/                         # MVC: modelos Pydantic (entrada/saída)
 │   ├── repositories/                   # Acesso a dados
 │   │   ├── interfaces/                 # Contratos (ex.: IProductRepository)
 │   │   └── in_memory/                  # Implementação em memória (ex.: produtos)
-│   ├── routes/                         # Endpoints por recurso
-│   │   ├── health/                     # GET /health/
-│   │   └── products/                   # CRUD em /api/products/ (get, post, put, patch, delete)
+│   ├── routes/                         # Endpoints por recurso (versionados: /api/v1/...)
+│   │   ├── health/                     # GET /api/v1/health
+│   │   └── products/                   # CRUD em /api/v1/products (get, post, put, patch, delete)
 │   ├── services/                       # Lógica de negócio
-│   ├── utils/                          # Logger (structlog) e outros utilitários
-│   └── main.py                         # App FastAPI, CORS, exception handlers, rotas
+│   ├── utils/                          # Logger (structlog) com correlation ID
+│   └── main.py                         # App FastAPI, CORS, middleware, exception handlers, rotas
 ├── tests/
 │   ├── conftest.py                     # Fixtures compartilhadas (client, product_service, etc.)
 │   ├── integration/                    # Testes contra a API (TestClient)
@@ -44,6 +46,77 @@ py-blueprint/
 ```
 
 **Fluxo de uma requisição:** `Route` → `Controller` → `Service` → `Repository` → `Model`. Erros são tratados pelos **exception handlers** e devolvidos em JSON.
+
+---
+
+## Versionamento da API
+
+Todos os endpoints são versionados com prefixo `/api/v1/`:
+
+- **Health Check**: `GET /api/v1/health`
+- **Produtos**: `GET /api/v1/products/`, `POST /api/v1/products/`, `PUT /api/v1/products/{id}`, etc.
+
+Isso permite evoluir a API sem quebrar clientes: no futuro, `/api/v2/` pode conviver com `/api/v1/`.
+
+---
+
+## Logging e Observabilidade
+
+### Logging Estruturado (JSON)
+
+Toda requisição HTTP é registrada automaticamente pelo middleware com:
+
+- **Correlation ID** (`X-Correlation-ID`): rastreamento distribuído entre serviços
+- **Método HTTP**: GET, POST, PUT, DELETE, etc.
+- **Caminho**: `/api/v1/products`
+- **Status code**: 200, 201, 404, 500, etc.
+- **Duração**: tempo de processamento em ms
+- **IP do cliente**: para auditoria
+
+**Exemplo de log (JSON)**:
+
+```json
+{
+  "correlation_id": "550e8400-e29b-41d4-a716-446655440000",
+  "event": "http_request",
+  "method": "POST",
+  "path": "/api/v1/products",
+  "status_code": 201,
+  "duration_ms": 2.45,
+  "client_ip": "127.0.0.1",
+  "level": "info",
+  "timestamp": "2026-02-14T00:45:23.123456Z"
+}
+```
+
+### Logs de Negócio
+
+Operações criticamente importantes (criar, atualizar, deletar) também geram logs:
+
+```json
+{
+  "event": "Product created",
+  "operation": "create_product",
+  "correlation_id": "550e8400-e29b-41d4-a716-446655440000",
+  "level": "info",
+  "timestamp": "2026-02-14T00:45:23.235456Z"
+}
+```
+
+### Correlation ID em Arquitetura Distribuída
+
+O Correlation ID pode ser passado entre serviços para rastreamento fim-a-fim:
+
+```bash
+curl -H "X-Correlation-ID: 550e8400-e29b-41d4-a716-446655440000" \
+  http://localhost:8000/api/v1/health
+```
+
+A resposta retorna o Correlation ID no header para confirmar:
+
+```
+X-Correlation-ID: 550e8400-e29b-41d4-a716-446655440000
+```
 
 ---
 
@@ -91,15 +164,15 @@ Gerados pelo script `scripts/export_requirements.py` (lê apenas o que está dec
 
 ## Desenvolvimento
 
-| Ação                            | Make                 | UV                                                    | Pip / Python (venv ativo) |
-| ------------------------------- | -------------------- | ----------------------------------------------------- | ------------------------- |
-| Gerar requirements (prod + dev) | `make requirements`  | —                                                     | `python scripts/export_requirements.py` |
-| Sincronizar deps                | `make sync`          | `uv sync --dev`                                       | `pip install -e ".[dev]"` ou `pip install -r requirements-dev.txt` |
-| Subir a API                     | `make dev`           | `uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload` | `uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload` |
-| Lint + correção                 | `make lint`          | `uv run ruff check . --fix`                            | `ruff check . --fix`      |
-| Formatar                        | `make format`        | `uv run ruff format .`                                 | `ruff format .`           |
-| Testes                          | `make test`          | `uv run pytest -v`                                     | `pytest -v`                |
-| Testes + cobertura              | —                    | `uv run pytest --cov=src --cov-report=term -v`         | `pytest --cov=src --cov-report=term -v` |
+| Ação                            | Make                | UV                                                                | Pip / Python (venv ativo)                                          |
+| ------------------------------- | ------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Gerar requirements (prod + dev) | `make requirements` | —                                                                 | `python scripts/export_requirements.py`                            |
+| Sincronizar deps                | `make sync`         | `uv sync --dev`                                                   | `pip install -e ".[dev]"` ou `pip install -r requirements-dev.txt` |
+| Subir a API                     | `make dev`          | `uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload` | `uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload`         |
+| Lint + correção                 | `make lint`         | `uv run ruff check . --fix`                                       | `ruff check . --fix`                                               |
+| Formatar                        | `make format`       | `uv run ruff format .`                                            | `ruff format .`                                                    |
+| Testes                          | `make test`         | `uv run pytest -v`                                                | `pytest -v`                                                        |
+| Testes + cobertura              | —                   | `uv run pytest --cov=src --cov-report=term -v`                    | `pytest --cov=src --cov-report=term -v`                            |
 
 A API sobe em **http://0.0.0.0:8000**. Documentação interativa: **http://localhost:8000/docs**.
 
@@ -136,10 +209,15 @@ docker compose up -d
 
 ## O que este template oferece
 
+- **API Versionada**: endpoints estruturados com `/api/v1/` para evolução sem quebrar clientes.
 - **Model-Controller** com rotas por recurso e por verbo HTTP (get/post/put/patch/delete).
 - **Configuração centralizada** com `pydantic-settings` e `.env`.
 - **Erros padronizados**: `ApplicationServiceError` + decorators em services + handlers FastAPI (resposta JSON).
-- **Logging estruturado** (structlog): texto ou JSON conforme `LOG_FORMAT_JSON`.
+- **Logging estruturado** (structlog):
+  - JSON para observabilidade (produção)
+  - Texto formatado para desenvolvimento
+  - **Correlation ID automático** para rastreamento distribuído
+  - Middleware HTTP que loga todas as requisições com duração e status code
 - **Injeção de dependência** via **factories** em `src/factories/` (repositório → service → controller).
 - **Interface de repositório** (`IProductRepository`) e implementação em memória.
 - **Testes**: unitários por camada e integração com `TestClient`; pytest configurado em `pyproject.toml` (sem `-s` para saída limpa).
@@ -150,6 +228,8 @@ docker compose up -d
 ## Estrutura de código (resumo)
 
 - **`core/settings`**: `get_settings()` retorna configurações (singleton). Use em toda a app.
+- **`core/middleware`**:
+  - `HttpLoggingMiddleware`: loga automaticamente todas as requisições HTTP com correlation ID, método, caminho, status code e duração.
 - **`core/exceptions`**:
   - `ApplicationServiceError`: erro de negócio com `message`, `error_code`, `status_code`.
   - `@handle_service_errors_async` / `@handle_service_errors_sync`: aplicados nos services para logar e converter exceções.
@@ -157,8 +237,10 @@ docker compose up -d
 - **`factories`**: `make_product_repository()`, `make_product_service()`, `make_product_controller()` — usados nas rotas para injetar dependências.
 - **`models`**: Pydantic (ex.: `ProductCreate`, `ProductUpdate`, `ProductResponse`).
 - **`repositories`**: Interface em `interfaces/`, implementação em `in_memory/`.
-- **`routes`**: Cada recurso tem uma pasta (ex.: `products/`) com arquivos por verbo (`get.py`, `post.py`, …); o `__init__.py` monta o router com prefixo e tags.
-- **`utils/logger`**: `get_logger(__name__)` para logs estruturados (info/error com kwargs).
+- **`routes`**: Cada recurso tem uma pasta (ex.: `products/`) com arquivos por verbo (`get.py`, `post.py`, …); todos versionados sob `/api/v1/`. O `__init__.py` monta o router com prefixo e tags.
+- **`utils/logger`**:
+  - `get_logger(__name__)` para logs estruturados (info/error com kwargs).
+  - `get_correlation_id()` / `set_correlation_id()` para acessar o correlation ID da requisição atual.
 
 ---
 
@@ -173,6 +255,7 @@ docker compose up -d
 - **Python não encontrado (Windows)**: instale em [python.org](https://www.python.org/downloads/) e marque "Add Python to PATH"; ou use `py -m venv .venv`.
 - **Erros de TLS com uv**: tente `UV_NATIVE_TLS=false uv sync --dev` ou use `pip install -e ".[dev]"`.
 - **Logs aparecendo nos testes**: use `make test` (sem `-s`); o pytest captura stdout/stderr. Se usar `pytest -s`, os logs voltam a aparecer.
+- **Dois logs para a mesma requisição**: é normal. Um vem da operação de negócio (ex.: "Product created") e outro do middleware HTTP ("http_request"). Os timestamps mostram a sequência verdadeira.
 
 ---
 

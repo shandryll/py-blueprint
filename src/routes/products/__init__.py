@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from src.routes.products import delete, get, patch, post, put
 
-router = APIRouter(prefix="/api/products", tags=["products"])
+router = APIRouter(prefix="/api/v1/products", tags=["products"])
 
 router.include_router(get.router)
 router.include_router(post.router)

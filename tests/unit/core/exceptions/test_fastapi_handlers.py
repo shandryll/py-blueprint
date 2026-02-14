@@ -20,7 +20,7 @@ from src.core.exceptions.fastapi_handlers import (
 async def test_application_error_handler_returns_json() -> None:
     """application_error_handler returns JSONResponse with error body."""
     request = MagicMock()
-    request.url.path = "/api/products"
+    request.url.path = "/api/v1/products"
     exc = ApplicationServiceError(
         service_name="ProductService",
         message="Product not found",
@@ -33,14 +33,14 @@ async def test_application_error_handler_returns_json() -> None:
     assert "Product not found" in body
     assert "PRODUCT_NOT_FOUND" in body
     assert "timestamp" in body
-    assert "/api/products" in body
+    assert "/api/v1/products" in body
 
 
 @pytest.mark.asyncio
 async def test_http_exception_handler_404() -> None:
     """http_exception_handler returns JSON with NOT_FOUND for 404."""
     request = MagicMock()
-    request.url.path = "/api/products/123"
+    request.url.path = "/api/v1/products/123"
     exc = StarletteHTTPException(status_code=404, detail="Not Found")
     response = await http_exception_handler(request, exc)
     assert response.status_code == 404
@@ -52,7 +52,7 @@ async def test_http_exception_handler_404() -> None:
 async def test_validation_exception_handler_returns_422() -> None:
     """validation_exception_handler returns 422 with errors list."""
     request = MagicMock()
-    request.url.path = "/api/products"
+    request.url.path = \"/api/v1/products\"
 
     class RequiredField(BaseModel):
         name: str

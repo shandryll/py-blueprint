@@ -9,6 +9,7 @@ from src.core.exceptions.fastapi_handlers import (
     http_exception_handler,
     validation_exception_handler,
 )
+from src.core.middleware import HttpLoggingMiddleware
 from src.core.settings import get_settings
 from src.routes.health import router as health_router
 from src.routes.products import router as products_router
@@ -27,6 +28,10 @@ app = FastAPI(
     version=settings.app_version,
     debug=settings.debug,
 )
+
+# Registra middleware (ordem inversa: último adicionado executa primeiro)
+# Logging HTTP deve ser o primeiro executado
+app.add_middleware(HttpLoggingMiddleware)
 
 # Configura CORS
 app.add_middleware(

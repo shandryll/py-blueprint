@@ -72,7 +72,6 @@ class ProductService:
                 status_code=HTTP_404_NOT_FOUND,
                 error_code="PRODUCT_NOT_FOUND",
             )
-        logger.info("Product found", operation="get_product_by_id")
         return product
 
     @handle_service_errors_async(service_name=SERVICE_NAME, error_code="GET_ERROR")
@@ -97,7 +96,6 @@ class ProductService:
                 status_code=HTTP_404_NOT_FOUND,
                 error_code="PRODUCT_NOT_FOUND",
             )
-        logger.info("Product found", operation="get_product_by_name")
         return product
 
     @handle_service_errors_async(service_name=SERVICE_NAME, error_code="GET_ALL_ERROR")
@@ -113,7 +111,6 @@ class ProductService:
         """
         logger.debug("Listing products", operation="get_all_products")
         products = await self._repository.get_all(skip=skip, limit=limit)
-        logger.info("Products listed", operation="get_all_products", count=len(products))
         return products
 
     @handle_service_errors_async(service_name=SERVICE_NAME, error_code="UPDATE_ERROR")
