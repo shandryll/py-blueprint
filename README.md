@@ -1,9 +1,9 @@
-# PY-BLUEPRINT (MVC)
+# PY-BLUEPRINT (Hexagonal)
 
 [![CI Pipeline](https://github.com/shandryll/py-blueprint/actions/workflows/checks.yml/badge.svg)](https://github.com/shandryll/py-blueprint/actions/workflows/checks.yml)
 [![codecov](https://codecov.io/gh/shandryll/py-blueprint/branch/main/graph/badge.svg)](https://codecov.io/gh/shandryll/py-blueprint)
 
-Template Python em **MVC** (Model-Controller) com FastAPI: configuração de lint, testes e ambiente pronta para novos projetos.
+Template Python em **Arquitetura Hexagonal** (Ports & Adapters) com FastAPI: configuração de lint, testes e ambiente pronta para novos projetos.
 
 ---
 
@@ -12,40 +12,77 @@ Template Python em **MVC** (Model-Controller) com FastAPI: configuração de lin
 ```
 py-blueprint/
 ├── src/
-│   ├── core/                           # Núcleo da aplicação
-│   │   ├── settings/                   # Configurações (pydantic-settings + .env)
-│   │   ├── exceptions/                 # Erros da aplicação e handlers HTTP
-│   │   │   ├── application_errors.py   # ApplicationServiceError e códigos HTTP
-│   │   │   ├── error_decorators.py     # Decorators para tratar erros em services
-│   │   │   └── fastapi_handlers.py     # Handlers FastAPI (resposta JSON padronizada)
-│   │   └── middleware/                 # Middleware da aplicação
-│   │       └── http_logging.py         # Logging estruturado de requisições HTTP (correlation ID)
-│   ├── controllers/                    # MVC: coordenam rotas e serviços
-│   ├── factories/                      # Criação de repositório, service e controller (injeção de dependência)
-│   ├── models/                         # MVC: modelos Pydantic (entrada/saída)
-│   ├── repositories/                   # Acesso a dados
-│   │   ├── interfaces/                 # Contratos (ex.: IProductRepository)
-│   │   └── in_memory/                  # Implementação em memória (ex.: produtos)
-│   ├── routes/                         # Endpoints por recurso (versionados: /api/v1/...)
-│   │   ├── health/                     # GET /api/v1/health
-│   │   └── products/                   # CRUD em /api/v1/products (get, post, put, patch, delete)
-│   ├── services/                       # Lógica de negócio
-│   ├── utils/                          # Logger (structlog) com correlation ID
-│   └── main.py                         # App FastAPI, CORS, middleware, exception handlers, rotas
+│   ├── domain/                              # Núcleo do domínio (sem dependências externas)
+│   │   ├── entities/                        # Entidades de domínio (dataclasses puras)
+│   │   │   └── product.py                   # Product: regras de negócio, validação
+│   │   ├── exceptions/                      # Exceções de domínio
+│   │   │   └── product_exceptions.py        # ProductNotFoundError, ProductNameAlreadyExistsError, etc.
+│   │   └── ports/                           # Interfaces (contratos)
+│   │       ├── input/                       # Input Ports (casos de uso)
+│   │       │   └── product_use_case.py      # IProductUseCase
+│   │       └── output/                      # Output Ports (repositórios)
+│   │           └── product_repository.py    # IProductRepository
+│   ├── application/                         # Casos de uso (orquestração)
+│   │   ├── use_cases/
+│   │   │   └── product_use_case.py          # ProductUseCase (implementa IProductUseCase)
+│   │   └── __init__.py
+│   ├── infrastructure/                      # Adaptadores (frameworks, bibliotecas)
+│   │   ├── di/                              # Injeção de dependência
+│   │   │   └── container.py                 # get_product_use_case() — fábricas manuais
+│   │   ├── input/                           # Adaptadores de entrada
+│   │   │   └── http/
+│   │   │       └── fastapi/
+│   │   │           ├── main.py              # create_app() — FastAPI factory
+│   │   │           ├── handlers.py          # Exception handlers (JSON padronizado)
+│   │   │           ├── middleware.py        # HttpLoggingMiddleware (correlation ID)
+│   │   │           ├── routes/
+│   │   │           │   ├── health.py        # GET /api/v1/health
+│   │   │           │   └── products.py      # CRUD /api/v1/products
+│   │   │           └── schemas/
+│   │   │               ├── product_schemas.py  # Pydantic schemas (entrada/saída HTTP)
+│   │   │               └── health_schemas.py   # Health check schema
+│   │   └── output/                          # Adaptadores de saída
+│   │       └── persistence/
+│   │           └── in_memory/
+│   │               └── product_repository.py  # InMemoryProductRepository
+│   ├── shared/                              # Código compartilhado (framework-agnostic)
+│   │   ├── settings.py                      # Configurações (pydantic-settings + .env)
+│   │   ├── exceptions.py                    # ApplicationServiceError
+│   │   └── logger.py                        # Logger (structlog) com correlation ID
+│   └── main.py                              # App FastAPI (entrada principal)
 ├── tests/
-│   ├── conftest.py                     # Fixtures compartilhadas (client, product_service, etc.)
-│   ├── integration/                    # Testes contra a API (TestClient)
-│   └── unit/                           # Testes por camada (espelha src/)
-│       ├── controllers/
-│       ├── core/exceptions/
-│       ├── models/
-│       ├── repositories/in_memory/
-│       └── services/
-├── pyproject.toml                      # Dependências, pytest, ruff, pyright
-└── Makefile                            # Comandos: dev, lint, format, test, sync
+│   ├── conftest.py                          # Fixtures compartilhadas
+│   ├── integration/                         # Testes contra a API (TestClient)
+│   └── unit/                                # Testes por camada
+│       ├── core/exceptions/                 # Testes de erro/handlers
+│       ├── entities/                        # Testes das entidades de domínio
+│       └── use_cases/                       # Testes dos casos de uso
+├── docs/
+│   ├── hexagonal-migration.md               # Guia da migração MVC → Hexagonal
+│   └── guide-for-beginners.md               # Passo a passo para iniciantes
+├── pyproject.toml                           # Dependências, pytest, ruff, pyright
+└── Makefile                                 # Comandos: dev, lint, format, test, sync
 ```
 
-**Fluxo de uma requisição:** `Route` → `Controller` → `Service` → `Repository` → `Model`. Erros são tratados pelos **exception handlers** e devolvidos em JSON.
+**Fluxo de uma requisição:**
+```
+HTTP → Route → Schema (Pydantic) → IProductUseCase → ProductUseCase → IProductRepository → InMemoryProductRepository
+       │                                                                                         │
+       ← ProductResponseSchema ←─────────────────────────────────────────────────────────────────←
+```
+
+O **domínio** (`Product`, `IProductUseCase`, `IProductRepository`) não importa nada externo — nem FastAPI, nem Pydantic, nem banco de dados. Essa é a essência da arquitetura hexagonal: o núcleo de negócio é puro Python.
+
+---
+
+## Camadas (resumo)
+
+| Camada | O que contém | Depende de |
+|--------|-------------|------------|
+| `domain/` | Entidades (dataclass), Exceções, Ports (interfaces) | Nada externo |
+| `application/` | Casos de uso (orquestração) | `domain/` |
+| `infrastructure/` | Adaptadores: FastAPI (input), repositórios (output), DI | `domain/`, `application/`, `shared/` |
+| `shared/` | Config, logging, erros genéricos | Pydantic-settings, structlog |
 
 ---
 
@@ -188,7 +225,7 @@ APP_VERSION=1.0.0
 DEBUG=false
 HOST=127.0.0.1
 PORT=8000
-CORS_ORIGINS=["http://localhost:3000","http://localhost:8000/"]
+CORS_ORIGINS=["http://localhost:3000","http://localhost:8000"]
 LOG_LEVEL=INFO
 LOG_FORMAT_JSON=false
 ```
@@ -210,37 +247,38 @@ docker compose up -d
 ## O que este template oferece
 
 - **API Versionada**: endpoints estruturados com `/api/v1/` para evolução sem quebrar clientes.
-- **Model-Controller** com rotas por recurso e por verbo HTTP (get/post/put/patch/delete).
+- **Arquitetura Hexagonal** (Ports & Adapters):
+  - Domínio puro (dataclasses, sem Pydantic, sem FastAPI)
+  - Input/Output Ports bem definidos
+  - Casos de uso orquestrando o fluxo
+  - Adaptadores de entrada (FastAPI) e saída (repositórios) intercambiáveis
 - **Configuração centralizada** com `pydantic-settings` e `.env`.
-- **Erros padronizados**: `ApplicationServiceError` + decorators em services + handlers FastAPI (resposta JSON).
+- **Erros padronizados**: `ApplicationServiceError` + `ProductDomainError` + handlers FastAPI (resposta JSON com timestamp e path).
 - **Logging estruturado** (structlog):
   - JSON para observabilidade (produção)
   - Texto formatado para desenvolvimento
   - **Correlation ID automático** para rastreamento distribuído
   - Middleware HTTP que loga todas as requisições com duração e status code
-- **Injeção de dependência** via **factories** em `src/factories/` (repositório → service → controller).
-- **Interface de repositório** (`IProductRepository`) e implementação em memória.
-- **Testes**: unitários por camada e integração com `TestClient`; pytest configurado em `pyproject.toml` (sem `-s` para saída limpa).
+- **Injeção de dependência** manual via `infrastructure/di/container.py` (sem framework de DI externo).
+- **Interface de repositório** (`IProductRepository`) e implementação em memória (troque por SQL/Redis sem tocar no domínio).
+- **Testes**: unitários (use case isolado) e integração (API real com `TestClient`); pytest configurado em `pyproject.toml`.
 - **Qualidade**: Ruff (lint/format), Pyright, Bandit, Safety; CI com GitHub Actions.
 
 ---
 
 ## Estrutura de código (resumo)
 
-- **`core/settings`**: `get_settings()` retorna configurações (singleton). Use em toda a app.
-- **`core/middleware`**:
-  - `HttpLoggingMiddleware`: loga automaticamente todas as requisições HTTP com correlation ID, método, caminho, status code e duração.
-- **`core/exceptions`**:
-  - `ApplicationServiceError`: erro de negócio com `message`, `error_code`, `status_code`.
-  - `@handle_service_errors_async` / `@handle_service_errors_sync`: aplicados nos services para logar e converter exceções.
-  - Handlers em `fastapi_handlers` transformam esses erros em resposta JSON (timestamp, path, etc.).
-- **`factories`**: `make_product_repository()`, `make_product_service()`, `make_product_controller()` — usados nas rotas para injetar dependências.
-- **`models`**: Pydantic (ex.: `ProductCreate`, `ProductUpdate`, `ProductResponse`).
-- **`repositories`**: Interface em `interfaces/`, implementação em `in_memory/`.
-- **`routes`**: Cada recurso tem uma pasta (ex.: `products/`) com arquivos por verbo (`get.py`, `post.py`, …); todos versionados sob `/api/v1/`. O `__init__.py` monta o router com prefixo e tags.
-- **`utils/logger`**:
-  - `get_logger(__name__)` para logs estruturados (info/error com kwargs).
-  - `get_correlation_id()` / `set_correlation_id()` para acessar o correlation ID da requisição atual.
+- **`domain/entities/product.py`**: Entidade `Product` como dataclass pura — valida nome, preço e estoque na criação; método `update()` imutável (retorna nova instância).
+- **`domain/ports/`**: Contratos `IProductUseCase` (input) e `IProductRepository` (output). O domínio só conhece interfaces.
+- **`application/use_cases/product_use_case.py`**: `ProductUseCase` implementa `IProductUseCase` e orquestra regras (verificar duplicidade, salvar, buscar).
+- **`infrastructure/input/http/fastapi/`**: Adaptador de entrada — rotas FastAPI que convertem schemas Pydantic em chamadas ao caso de uso.
+- **`infrastructure/output/persistence/in_memory/`**: Adaptador de saída — repositório em memória (troque por SQLAlchemy/asyncpg sem alterar o domínio).
+- **`infrastructure/di/container.py`**: `get_product_use_case()` — injeta o caso de uso lendo `app.state`, sem singleton global ou framework de DI.
+- **`infrastructure/input/http/fastapi/handlers.py`**: Handlers FastAPI para `ApplicationServiceError`, `ProductDomainError`, HTTPException e `RequestValidationError`.
+- **`infrastructure/input/http/fastapi/middleware.py`**: `HttpLoggingMiddleware` — correlation ID, método, path, status, duração.
+- **`shared/settings.py`**: `get_settings()` retorna configurações com cache (singleton).
+- **`shared/logger.py`**: `get_logger(__name__)` para logs estruturados com correlation ID.
+- **`shared/exceptions.py`**: `ApplicationServiceError` com `message`, `error_code`, `status_code`.
 
 ---
 

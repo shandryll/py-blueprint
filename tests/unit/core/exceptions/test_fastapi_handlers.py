@@ -8,12 +8,12 @@ from pydantic import BaseModel
 from pydantic import ValidationError as PydanticValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from src.core.exceptions.application_errors import ApplicationServiceError
-from src.core.exceptions.fastapi_handlers import (
+from src.infrastructure.input.http.fastapi.handlers import (
     application_error_handler,
     http_exception_handler,
     validation_exception_handler,
 )
+from src.shared.exceptions import ApplicationServiceError
 
 
 @pytest.mark.asyncio
@@ -52,7 +52,7 @@ async def test_http_exception_handler_404() -> None:
 async def test_validation_exception_handler_returns_422() -> None:
     """validation_exception_handler returns 422 with errors list."""
     request = MagicMock()
-    request.url.path = \"/api/v1/products\"
+    request.url.path = "/api/v1/products"
 
     class RequiredField(BaseModel):
         name: str

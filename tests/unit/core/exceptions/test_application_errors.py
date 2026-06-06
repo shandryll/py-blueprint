@@ -1,6 +1,6 @@
 """Unit tests for ApplicationServiceError (src.core.exceptions.application_errors)."""
 
-from src.core.exceptions.application_errors import ApplicationServiceError
+from src.shared.exceptions import ApplicationServiceError
 
 
 def test_application_service_error_str() -> None:
